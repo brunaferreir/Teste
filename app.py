@@ -85,18 +85,37 @@ def get_aluno(id_aluno):
         aluno = aluno_por_id(id_aluno)
         return jsonify(aluno), 200  
     except AlunoNaoEncontrado:
-        return jsonify({'message': 'Aluno não encontrado'}), 404
+        return jsonify({'erro': 'aluno nao encontrado'}), 404
 
 
 #POST
 
-@app.route('/alunos', methods=['POST'])
-def create_aluno(): 
-      dados = request.json
-      dici['alunos'].append(dados)
-      return jsonify(dados), 201   
+# @app.route('/alunos', methods=['POST'])
+# def create_aluno(): 
+#       dados = request.json
+#       dici['alunos'].append(dados)
+#       return jsonify(dados), 201 
 
- 
+@app.route('/alunos', methods=['POST'])
+def create_aluno():
+    dados = request.json
+    id_aluno = dados.get('id')
+    nome_aluno = dados.get('nome')
+    
+    if not nome_aluno:
+        return jsonify({'erro': 'aluno sem nome'}), 400
+
+     # Verifica se o ID já existe
+    for aluno in dici['alunos']:
+        if aluno['id'] == id_aluno:
+            return jsonify({'erro': 'id ja utilizada'}), 400  
+
+    # Adiciona o novo aluno
+    dici['alunos'].append(dados)
+    return jsonify(dados), 201
+
+
+
 
 #RESET
 
@@ -107,16 +126,29 @@ def reseta():
 
 #PUT ID
 
+def aluno_por_id(id_aluno):
+    for aluno in dici['alunos']:
+        if aluno['id'] == id_aluno:
+            return aluno
+    raise AlunoNaoEncontrado
+
+
 @app.route('/alunos/<int:id_aluno>', methods=['PUT'])
 def update_aluno(id_aluno):
      dados = request.json
+     nome_aluno = dados.get('nome')
+    
+     if not nome_aluno:
+        return jsonify({'erro': 'aluno sem nome'}), 400
+
      try:
         aluno = aluno_por_id(id_aluno)
         aluno.update(dados)  
         return jsonify(aluno), 200   
      except AlunoNaoEncontrado:
-         return jsonify({'message': 'Aluno não encontrado'}), 404
+         return jsonify({'erro': 'aluno nao encontrado'}), 404
      
+
 
 #PATCH ID
 
@@ -142,7 +174,7 @@ def delete_aluno(id_aluno):
         dici['alunos'].remove(aluno)
         return 'aluno deletado', 204
     except AlunoNaoEncontrado:
-         return jsonify({'message': 'Aluno não encontrado'}), 404
+         return jsonify({'erro': 'aluno nao encontrado'}), 404
 
 #DELETE TUDO   
 

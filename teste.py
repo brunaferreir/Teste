@@ -216,11 +216,11 @@ class TestStringMethods(unittest.TestCase):
     #tenta fazer GET, PUT e DELETE num aluno que nao existe
     def test_006a_id_inexistente_no_put(self):
         #reseto
-        r_reset = requests.post('http://localhost:5002/reseta')
+        r_reset = requests.post('http://localhost:5000/reseta')
         #vejo se nao deu pau resetar
         self.assertEqual(r_reset.status_code,200)
         #estou tentando EDITAR um aluno que nao existe (verbo PUT)
-        r = requests.put('http://localhost:5002/alunos/15',json={'nome':'bowser','id':15})
+        r = requests.put('http://localhost:5000/alunos/15',json={'id':15,'nome':'bowser'})
         #tem que dar erro 400 ou 404
         #ou seja, r.status_code tem que aparecer na lista [400,404]
         self.assertIn(r.status_code,[400,404])
@@ -231,11 +231,11 @@ class TestStringMethods(unittest.TestCase):
 
     def test_006b_id_inexistente_no_get(self):
         #reseto
-        r_reset = requests.post('http://localhost:5002/reseta')
+        r_reset = requests.post('http://localhost:5000/reseta')
         #vejo se nao deu pau resetar
         self.assertEqual(r_reset.status_code,200)
         #agora faço o mesmo teste pro GET, a consulta por id
-        r = requests.get('http://localhost:5002/alunos/15')
+        r = requests.get('http://localhost:5000/alunos/15')
         self.assertIn(r.status_code,[400,404])
         #olhando pra essa linha debaixo, o que está especificado que o servidor deve retornar
         self.assertEqual(r.json()['erro'],'aluno nao encontrado')
@@ -249,10 +249,10 @@ class TestStringMethods(unittest.TestCase):
         
     def test_006c_id_inexistente_no_delete(self):
         #reseto
-        r_reset = requests.post('http://localhost:5002/reseta')
+        r_reset = requests.post('http://localhost:5000/reseta')
         #vejo se nao deu pau resetar
         self.assertEqual(r_reset.status_code,200)
-        r = requests.delete('http://localhost:5002/alunos/15')
+        r = requests.delete('http://localhost:5000/alunos/15')
         self.assertIn(r.status_code,[400,404])
         self.assertEqual(r.json()['erro'],'aluno nao encontrado')
 
@@ -263,51 +263,80 @@ class TestStringMethods(unittest.TestCase):
         #400. Talvez fosse sacanagem com o programador do outro
         #lado, mas nao seria mentira
 
+
+#TESTE 7 
+
     #tento criar 2 caras com a  mesma id
+    # def test_007_criar_com_id_ja_existente(self):
+
+    #     #dou reseta e confiro que deu certo
+    #     r_reset = requests.post('http://localhost:5000/reseta')
+    #     self.assertEqual(r_reset.status_code,200)
+
+    #     #crio o usuario bond e confiro
+    #     r = requests.post('http://localhost:5000/alunos',json={'id':7,'nome':'bond'})
+    #     self.assertEqual(r.status_code,200)
+
+    #     #tento usar o mesmo id para outro usuário
+    #     r = requests.post('http://localhost:5000/alunos',json={'id':7,'nome':'james'})
+    #     # o erro é muito parecido com o do teste anterior
+    #     self.assertEqual(r.status_code,400)
+    #     self.assertEqual(r.json()['erro'],'id ja utilizada')
+
+
     def test_007_criar_com_id_ja_existente(self):
+        r_reset = requests.post('http://localhost:5000/reseta')
+        self.assertEqual(r_reset.status_code, 200)
 
-        #dou reseta e confiro que deu certo
-        r_reset = requests.post('http://localhost:5002/reseta')
-        self.assertEqual(r_reset.status_code,200)
+        # Cria um aluno com ID 1
+        r_criar1 = requests.post('http://localhost:5000/alunos', json={'id': 1, 'nome': 'Alice'})
+        self.assertEqual(r_criar1.status_code, 201)
 
-        #crio o usuario bond e confiro
-        r = requests.post('http://localhost:5002/alunos',json={'nome':'bond','id':7})
-        self.assertEqual(r.status_code,200)
-
-        #tento usar o mesmo id para outro usuário
-        r = requests.post('http://localhost:5002/alunos',json={'nome':'james','id':7})
-        # o erro é muito parecido com o do teste anterior
-        self.assertEqual(r.status_code,400)
-        self.assertEqual(r.json()['erro'],'id ja utilizada')
+        # Tenta criar outro aluno com o mesmo ID
+        r_criar2 = requests.post('http://localhost:5000/alunos', json={'id': 1, 'nome': 'Bob'})
+        self.assertEqual(r_criar2.status_code, 400)  # ou 409
+        self.assertEqual(r_criar2.json()['erro'], 'id ja utilizada')
 
 
     #cria alunos sem nome, o que tem que dar erro
     def test_008a_post_sem_nome(self):
-        r_reset = requests.post('http://localhost:5002/reseta')
+        r_reset = requests.post('http://localhost:5000/reseta')
         self.assertEqual(r_reset.status_code,200)
 
         #tentei criar um aluno, sem enviar um nome
-        r = requests.post('http://localhost:5002/alunos',json={'id':8})
+        r = requests.post('http://localhost:5000/alunos',json={'id':8})
         self.assertEqual(r.status_code,400)
         self.assertEqual(r.json()['erro'],'aluno sem nome')
     
+
+
+
     #tenta editar alunos sem passar nome, o que também
     #tem que dar erro (se vc nao mudar o nome, vai mudar o que?)
     def test_008b_put_sem_nome(self):
-        r_reset = requests.post('http://localhost:5002/reseta')
+        r_reset = requests.post('http://localhost:5000/reseta')
         self.assertEqual(r_reset.status_code,200)
 
         #criei um aluno sem problemas
-        r = requests.post('http://localhost:5002/alunos',json={'nome':'maximus','id':7})
-        self.assertEqual(r.status_code,200)
+        r = requests.post('http://localhost:5000/alunos',json={'id':7,'nome':'maximus'})
+        self.assertEqual(r.status_code,201)
 
         #mas tentei editar ele sem mandar o nome
-        r = requests.put('http://localhost:5002/alunos/7',json={'id':7})
+        r = requests.put('http://localhost:5000/alunos/7',json={'id':7})
         self.assertEqual(r.status_code,400)
         self.assertEqual(r.json()['erro'],'aluno sem nome')
     
 
-    
+
+
+
+#TESTES 100 A 109: PROFESSORES
+
+
+
+
+
+
     def test_100_professores_retorna_lista(self):
         r = requests.get('http://localhost:5002/professores')
         self.assertEqual(type(r.json()),type([]))
