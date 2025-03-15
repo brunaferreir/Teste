@@ -185,9 +185,119 @@ def delete_alunos():
 
 
 
-#-----------------------------------------------------------------------------------------------
+#-------------------PROFESSORES-----0.2----------------
 
-#PROFESSORES
+
+class ProfessorNaoEncontrado(Exception):
+    pass
+
+
+def professor_por_id(professor_id):
+    for professor in dici['professores']:
+        if professor['id'] == professor_id:
+            return professor
+    raise ProfessorNaoEncontrado
+
+
+#GET
+
+# @app.route('/professores', methods=['GET'])
+# def get_professores():
+#     dados = dici['professores']
+#     return jsonify(dados)
+
+
+@app.route('/professores', methods=['GET'])
+def get_professores():
+    return jsonify(dici["professores"])
+
+
+
+# #GET ID
+
+@app.route('/professores/<int:id_professor>', methods=['GET'])
+def get_professor(id_professor):
+    try:
+        
+        professor = professor_por_id(id_professor)
+        return jsonify(professor), 200  
+    except ProfessorNaoEncontrado:
+        return jsonify({'message': 'Professor não encontrado'}), 404
+
+
+# #POST
+
+@app.route('/professores', methods=['POST'])
+def create_professores(): 
+      dados = request.json
+      dici['professores'].append(dados)
+      return jsonify(dados), 200
+
+ 
+
+# # #RESET
+
+# @app.route('/reseta', methods=['POST'])
+# def reseta():
+#     dici["professores"] = []
+#     return jsonify({"message": "Banco de dados resetado"}), 200
+
+
+# #PUT ID
+
+@app.route('/professores/<int:id_professor>', methods=['PUT'])
+def update_professor(id_professor):
+     dados = request.json
+     try:
+        professor = professor_por_id(id_professor)
+        professor.update(dados)  
+        return jsonify(professor), 200   
+     except ProfessorNaoEncontrado:
+         return jsonify({'message': 'Professor não encontrado'}), 404
+     
+
+# #PATCH ID
+
+@app.route('/professores/<int:id_professor>', methods=['PATCH'])
+def patch_professor(id_professor):
+    dados = request.json
+    try:
+        professor = professor_por_id(id_professor)
+        for chave, valor in dados.items():
+            professor[chave] = valor
+        return jsonify(professor), 200
+    except ProfessorNaoEncontrado:
+        return jsonify({'message': 'Professor não encontrado'}), 404
+
+
+
+# #DELETE ID
+
+@app.route('/professores/<int:id_professor>', methods=['DELETE'])
+def delete_profesor(id_professor):
+    try:
+        professor = professor_por_id(id_professor)
+        dici['professores'].remove(professor)
+        return 'professor deletado', 204
+    except ProfessorNaoEncontrado:
+         return jsonify({'message': 'Professor não encontrado'}), 404
+
+
+# #DELETE TUDO   
+
+@app.route('/professores', methods=['DELETE'])
+def delete_professores():
+    dici['professores'] = []
+    return 'professores deletados', 204
+
+
+
+
+
+
+#-------------------------------------CAIO--------0.1----------------------------------
+
+
 
 class ProfessorNaoEncontrado(Exception):
     pass
