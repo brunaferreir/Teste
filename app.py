@@ -96,23 +96,84 @@ def get_aluno(id_aluno):
 #       dici['alunos'].append(dados)
 #       return jsonify(dados), 201 
 
+# @app.route('/alunos', methods=['POST'])
+# def create_aluno():
+#     dados = request.json
+#     id_aluno = dados.get('id')
+#     nome_aluno = dados.get('nome')
+    
+#     if not nome_aluno:
+#         return jsonify({'erro': 'aluno sem nome'}), 400
+
+#      # Verifica se o ID já existe
+#     for aluno in dici['alunos']:
+#         if aluno['id'] == id_aluno:
+#             return jsonify({'erro': 'id ja utilizada'}), 400  
+
+#     # Adiciona o novo aluno
+#     dici['alunos'].append(dados)
+#     return jsonify(dados), 201
+
+
+
+# @app.route('/alunos', methods=['POST'])
+# def create_aluno(): 
+#       dados = request.json
+#       dici['alunos'].append(dados)
+#       return jsonify(dados), 201 
+
+# @app.route('/alunos', methods=['POST'])
+# def create_aluno():
+#     dados = request.json
+#     id_aluno = dados.get('id')
+#     nome_aluno = dados.get('nome')
+    
+#     if not nome_aluno:
+#         return jsonify({'erro': 'aluno sem nome'}), 400
+
+#      # Verifica se o ID já existe
+#     for aluno in dici['alunos']:
+#         if aluno['id'] == id_aluno:
+#             return jsonify({'erro': 'id ja utilizada'}), 400  
+
+#     # Adiciona o novo aluno
+#     dici['alunos'].append(dados)
+#     return jsonify(dados), 201
+
+
+
+
 @app.route('/alunos', methods=['POST'])
 def create_aluno():
     dados = request.json
+    if not dados:
+        return jsonify({'erro': 'Dados inválidos'}), 400
+
     id_aluno = dados.get('id')
     nome_aluno = dados.get('nome')
-    
+
+    # Validação da presença do nome DEVE vir primeiro
     if not nome_aluno:
         return jsonify({'erro': 'aluno sem nome'}), 400
 
-     # Verifica se o ID já existe
+    # Validação de tipos
+    if not isinstance(id_aluno, int):
+        return jsonify({'erro': 'O id deve ser um número inteiro'}), 400
+    if not isinstance(nome_aluno, str):
+        return jsonify({'erro': 'O nome deve ser uma string'}), 400
+
+    # Verifica se o ID já existe
     for aluno in dici['alunos']:
         if aluno['id'] == id_aluno:
-            return jsonify({'erro': 'id ja utilizada'}), 400  
+            return jsonify({'erro': 'id ja utilizada'}), 400
 
     # Adiciona o novo aluno
     dici['alunos'].append(dados)
     return jsonify(dados), 201
+
+
+
+
 
 
 
@@ -125,28 +186,63 @@ def reseta():
 
 #PUT ID
 
-def aluno_por_id(id_aluno):
-    for aluno in dici['alunos']:
-        if aluno['id'] == id_aluno:
-            return aluno
-    raise AlunoNaoEncontrado
+# def aluno_por_id(id_aluno):
+#     for aluno in dici['alunos']:
+#         if aluno['id'] == id_aluno:
+#             return aluno
+#     raise AlunoNaoEncontrado
+
+
+# @app.route('/alunos/<int:id_aluno>', methods=['PUT'])
+# def update_aluno(id_aluno):
+#      dados = request.json
+#      nome_aluno = dados.get('nome')
+    
+#      if not nome_aluno:
+#         return jsonify({'erro': 'aluno sem nome'}), 400
+
+#      try:
+#         aluno = aluno_por_id(id_aluno)
+#         aluno.update(dados)  
+#         return jsonify(aluno), 200   
+#      except AlunoNaoEncontrado:
+#          return jsonify({'erro': 'aluno nao encontrado'}), 404
+     
+
 
 
 @app.route('/alunos/<int:id_aluno>', methods=['PUT'])
 def update_aluno(id_aluno):
-     dados = request.json
-     nome_aluno = dados.get('nome')
-    
-     if not nome_aluno:
+    dados = request.json
+    if not dados:
+        return jsonify({'erro': 'Dados inválidos'}), 400
+
+    nome_aluno = dados.get('nome')
+    id_novo = dados.get('id')
+
+    if not nome_aluno:
         return jsonify({'erro': 'aluno sem nome'}), 400
 
-     try:
+    # Validação de tipos
+    if id_novo is not None and not isinstance(id_novo, int):
+        return jsonify({'erro': 'O id deve ser um número inteiro'}), 400
+    if not isinstance(nome_aluno, str):
+        return jsonify({'erro': 'O nome deve ser uma string'}), 400
+
+    try:
         aluno = aluno_por_id(id_aluno)
-        aluno.update(dados)  
-        return jsonify(aluno), 200   
-     except AlunoNaoEncontrado:
-         return jsonify({'erro': 'aluno nao encontrado'}), 404
-     
+        # Atualiza apenas se as chaves existirem nos dados recebidos
+        if 'nome' in dados:
+            aluno['nome'] = nome_aluno
+        if 'id' in dados:
+            aluno['id'] = id_novo
+        return jsonify(aluno), 200
+    except AlunoNaoEncontrado:
+        return jsonify({'erro': 'aluno nao encontrado'}), 404
+
+
+
+
 
 
 #PATCH ID
@@ -181,20 +277,6 @@ def delete_aluno(id_aluno):
 def delete_alunos():
     dici['alunos'] = []
     return 'alunos deletados', 204
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

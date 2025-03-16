@@ -327,6 +327,60 @@ class TestStringMethods(unittest.TestCase):
         self.assertEqual(r.json()['erro'],'aluno sem nome')
     
 
+    
+ #--------------------------TESTES GIOVANA-----------------------------------   
+
+    def test_009_post_com_tipos_invalidos(self):
+        # Teste 1: "id" não é um número inteiro
+        r = requests.post('http://localhost:5000/alunos', json={'id': 'g', 'nome': 'felipe'})
+        self.assertEqual(r.status_code, 400)
+        self.assertEqual(r.json().get("erro"), "O id deve ser um número inteiro")
+
+        # Teste 2: "nome" não é uma string
+        r = requests.post('http://localhost:5000/alunos', json={'id': 7,'nome': 987})
+        self.assertEqual(r.status_code, 400)
+        self.assertEqual(r.json().get("erro"), "O nome deve ser uma string")
+
+       
+
+    # def test_010_put_com_tipos_invalidos(self):
+    #     r = requests.post('http://localhost:5000/alunos', json={'id': 1,'nome': 'felipe'})
+    #     # Teste 1: "id" não é um número inteiro
+    #     r = requests.put('http://localhost:5000/alunos/1', json={'id': 'g', 'nome': 'felipe'})
+    #     self.assertEqual(r.status_code, 400)
+    #     self.assertEqual(r.json().get("erro"), "O id deve ser um número inteiro")
+
+    #     # Teste 2: "nome" não é uma string
+    #     r = requests.put('http://localhost:5000/alunos/1', json={'id': 7, 'nome': 343})
+    #     self.assertEqual(r.status_code, 400)
+    #     self.assertEqual(r.json().get("erro"), "O nome deve ser uma string")
+
+
+
+
+
+    def test_010_put_com_tipos_invalidos(self):
+        # Primeiro, cria um aluno para testar o PUT
+        r = requests.post('http://localhost:5000/alunos', json={'id': 1,'nome': 'felipe'})
+
+        # Teste 1: "id" não é um número inteiro
+        r = requests.put('http://localhost:5000/alunos/1', json={'id': 'g', 'nome': 'felipe'})
+        self.assertEqual(r.status_code, 400)
+        self.assertEqual(r.json().get("erro"), "O id deve ser um número inteiro")
+
+        # Teste 2: "nome" não é uma string
+        r = requests.put('http://localhost:5000/alunos/1', json={'id': 1, 'nome': 343})
+        self.assertEqual(r.status_code, 400)
+        self.assertEqual(r.json().get("erro"), "O nome deve ser uma string")
+        
+        #Teste 3: "nome" não enviado
+        r = requests.put('http://localhost:5000/alunos/1', json={'id': 2})
+        self.assertEqual(r.status_code, 400)
+        self.assertEqual(r.json().get('erro'), 'aluno sem nome')
+
+
+
+
 
 
 
