@@ -116,7 +116,6 @@ def create_aluno():
 
 
 
-
 #RESET
 
 @app.route('/reseta', methods=['POST'])
@@ -182,6 +181,23 @@ def delete_aluno(id_aluno):
 def delete_alunos():
     dici['alunos'] = []
     return 'alunos deletados', 204
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
