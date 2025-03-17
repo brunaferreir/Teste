@@ -121,12 +121,16 @@ def create_aluno():
 
 
 
-#RESET
+#RESET 
 
 @app.route('/reseta', methods=['POST'])
 def reseta():
     dici["alunos"] = []
+    dici["professores"] = []
+    dici["turmas"] = []
     return jsonify({"message": "Banco de dados resetado"}), 200
+
+
 
 
 
@@ -230,65 +234,6 @@ def delete_alunos():
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #-------------------------PROFESSORES-----0.2---------------------------------------------
 
 
@@ -326,39 +271,86 @@ def get_professor(id_professor):
         professor = professor_por_id(id_professor)
         return jsonify(professor), 200  
     except ProfessorNaoEncontrado:
-        return jsonify({'message': 'Professor não encontrado'}), 404
+        return jsonify({'erro': 'professor nao encontrado'}), 400
 
 
 # #POST
 
+# @app.route('/professores', methods=['POST'])
+# def create_professores(): 
+#       dados = request.json
+#       dici['professores'].append(dados)
+#       return jsonify(dados), 200
+
+
 @app.route('/professores', methods=['POST'])
-def create_professores(): 
-      dados = request.json
-      dici['professores'].append(dados)
-      return jsonify(dados), 200
+def create_professores():
+    dados = request.json
+    id_professor = dados.get('id')
+    nome_professor = dados.get('nome')
+
+    if not nome_professor:
+        return jsonify({'erro': 'professor sem nome'}), 400
+
+    # Verifica se o ID já existe
+    for professor in dici['professores']:
+        if professor['id'] == id_professor:
+            return jsonify({'erro': 'id ja utilizada'}), 400
+
+    dici['professores'].append(dados)
+    return jsonify(dados), 200 # Use 201 Created para indicar que um novo recurso foi criado
 
  
 
-# # #RESET
-
-# @app.route('/reseta', methods=['POST'])
-# def reseta():
-#     dici["professores"] = []
-#     return jsonify({"message": "Banco de dados resetado"}), 200
-
-
 # #PUT ID
+
+# @app.route('/professores/<int:id_professor>', methods=['PUT'])
+# def update_professor(id_professor):
+#     dados = request.json
+#     nome_professor = dados.get('nome')
+   
+#     if not nome_professor:
+#         return jsonify({'erro': 'professor sem nome'}), 400 
+
+#     try:
+#         professor = professor_por_id(id_professor)
+#         professor.update(dados)  
+#         return jsonify(professor), 200   
+#     except ProfessorNaoEncontrado:
+#          return jsonify({'erro': 'professor nao encontrado'}), 400
+     
+
 
 @app.route('/professores/<int:id_professor>', methods=['PUT'])
 def update_professor(id_professor):
-     dados = request.json
-     try:
+    dados = request.json
+    nome_professor = dados.get('nome')
+
+    if not nome_professor:
+        return jsonify({'erro': 'professor sem nome'}), 400
+
+    # Validação de tipos (exemplo)
+    if 'nome' in dados and not isinstance(dados['nome'], str):
+        return jsonify({'erro': 'O nome deve ser uma string'}), 400
+    
+    if 'idade' in dados and not isinstance(dados['idade'], int):
+        return jsonify({'erro': 'A idade deve ser um número inteiro'}), 400
+    
+    if 'materia' in dados and not isinstance(dados['materia'], str):
+        return jsonify({'erro': 'A matéria deve ser uma string'}), 400
+    
+    if 'observacao' in dados and not isinstance(dados['observacao'], str):
+        return jsonify({'erro': 'A observação deve ser uma string'}), 400
+
+    try:
         professor = professor_por_id(id_professor)
-        professor.update(dados)  
-        return jsonify(professor), 200   
-     except ProfessorNaoEncontrado:
-         return jsonify({'message': 'Professor não encontrado'}), 404
-     
+        professor.update(dados)
+        return jsonify(professor), 200
+    except ProfessorNaoEncontrado:
+        return jsonify({'erro': 'professor nao encontrado'}), 400
+
+
+
 
 # #PATCH ID
 
@@ -371,7 +363,7 @@ def patch_professor(id_professor):
             professor[chave] = valor
         return jsonify(professor), 200
     except ProfessorNaoEncontrado:
-        return jsonify({'message': 'Professor não encontrado'}), 404
+        return jsonify({'message': 'Professor não encontrado'}), 400
 
 
 
@@ -384,7 +376,7 @@ def delete_profesor(id_professor):
         dici['professores'].remove(professor)
         return 'professor deletado', 204
     except ProfessorNaoEncontrado:
-         return jsonify({'message': 'Professor não encontrado'}), 404
+         return jsonify({'erro': 'professor nao encontrado'}), 400
 
 
 # #DELETE TUDO   
@@ -393,110 +385,6 @@ def delete_profesor(id_professor):
 def delete_professores():
     dici['professores'] = []
     return 'professores deletados', 204
-
-
-
-
-
-
-#-------------------------------------CAIO--------0.1----------------------------------
-
-
-
-# class ProfessorNaoEncontrado(Exception):
-#     pass
-
-
-# def professor_por_id(professor_id):
-#     for professor in dici['professores']:
-#         if professor['id'] == professor_id:
-#             return professor
-#     raise ProfessorNaoEncontrado
-
-
-# #GET
-
-# @app.route('/professores', methods=['GET'])
-# def get_professores():
-#     dados = dici['professores']
-#     return jsonify(dados)
-
-# # #GET ID
-
-# @app.route('/professores/<int:id_professor>', methods=['GET'])
-# def get_professor(id_professor):
-#     try:
-        
-#         professor = professor_por_id(id_professor)
-#         return jsonify(professor), 200  
-#     except ProfessorNaoEncontrado:
-#         return jsonify({'message': 'Professor não encontrado'}), 404
-
-
-# # #POST
-
-# @app.route('/professores', methods=['POST'])
-# def create_professores(): 
-#       dados = request.json
-#       dici['professores'].append(dados)
-#       return jsonify(dados), 201   
-
- 
-
-# # # #RESET
-
-# # @app.route('/reseta', methods=['POST'])
-# # def reseta():
-# #     dici["professores"] = []
-# #     return jsonify({"message": "Banco de dados resetado"}), 200
-
-# # #PUT ID
-
-# @app.route('/professores/<int:id_professor>', methods=['PUT'])
-# def update_professor(id_professor):
-#      dados = request.json
-#      try:
-#         professor = professor_por_id(id_professor)
-#         professor.update(dados)  
-#         return jsonify(professor), 200   
-#      except ProfessorNaoEncontrado:
-#          return jsonify({'message': 'Professor não encontrado'}), 404
-     
-
-# # #PATCH ID
-
-# @app.route('/professores/<int:id_professor>', methods=['PATCH'])
-# def patch_professor(id_professor):
-#     dados = request.json
-#     try:
-#         professor = professor_por_id(id_professor)
-#         for chave, valor in dados.items():
-#             professor[chave] = valor
-#         return jsonify(professor), 200
-#     except ProfessorNaoEncontrado:
-#         return jsonify({'message': 'Professor não encontrado'}), 404
-
-
-
-# # #DELETE ID
-
-# @app.route('/professores/<int:id_professor>', methods=['DELETE'])
-# def delete_profesor(id_professor):
-#     try:
-#         professor = professor_por_id(id_professor)
-#         dici['professores'].remove(professor)
-#         return 'professor deletado', 204
-#     except ProfessorNaoEncontrado:
-#          return jsonify({'message': 'Professor não encontrado'}), 404
-
-
-# # #DELETE TUDO   
-
-# @app.route('/professores', methods=['DELETE'])
-# def delete_professores():
-#     dici['professores'] = []
-#     return 'professores deletados', 204
-
 
 
 

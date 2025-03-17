@@ -5,8 +5,7 @@ import unittest
 Cada aluno será representado por um dicionário JSON como o seguinte: 
 {"id":1,"nome":"marcos"}
 
-Testes 000 e 001:
-Na URL /alunos, se o verbo for GET, 
+Testes 000 e 001: Na URL /alunos, se o verbo for GET, 
 retornaremos uma lista com um dicionário para cada aluno.
 
 Na URL /alunos, com o verbo POST, ocorrerá a criação do aluno,
@@ -46,8 +45,19 @@ No teste 015, tento deletar um aluno com um id que não existe. Nesse caso, deve
 
 
 
+Testes 100 a 110: Teremos as URLs análogas para professores.
 
-Testes 100 a 109: Teremos as URLs análogas para professores.
+No teste 100, tento acessar a lista de professores.
+No teste 101, tento adicionar professores.
+No teste 102, tento acessar um professor por id.
+No teste 103, tento adicionar professores e resetar a lista.
+No teste 104, tento deletar um professor.
+No teste 105, tento editar um professor.
+No teste 106, tento acessar, deletar e editar um professor que não existe.
+No teste 107, tento criar um professor com um id que já existe.
+No teste 108, tento criar um professor sem nome que retorna um erro.
+No teste 109, tento editar um professor sem nome que retorna um erro.
+No teste 110, tento editar um professor, mas alterando outros campos que não o nome. Nesse caso, devemos aceitar a alteração e retornar o professor com os campos alterados.
 
 
 '''
@@ -365,17 +375,7 @@ class TestStringMethods(unittest.TestCase):
 
 
 
-
-
-
-
-
-
-
-
-
-    
-#--------------------------TESTES 100 A 109: PROFESSORES---------------------------
+#--------------------------TESTES 100 A 110: PROFESSORES---------------------------
 
 
     def test_100_professores_retorna_lista(self):
@@ -417,197 +417,97 @@ class TestStringMethods(unittest.TestCase):
         self.assertEqual(len(r_lista_depois.json()),0)
 
     def test_104_deleta(self):
-        r_reset = requests.post('http://localhost:5002/reseta')
+        r_reset = requests.post('http://localhost:5000/reseta')
         self.assertEqual(r_reset.status_code,200)
-        requests.post('http://localhost:5002/professores',json={'nome':'cicero','id':29})
-        requests.post('http://localhost:5002/professores',json={'nome':'lucas','id':28})
-        r_lista = requests.get('http://localhost:5002/professores')
+        requests.post('http://localhost:5000/professores',json={"id": 29,"idade": 34,"materia": "POO","nome": "cicera","observacao": "bom professor"})
+        requests.post('http://localhost:5000/professores',json={"id": 28,"idade": 34,"materia": "POO","nome": "lucas","observacao": "bom professor"})
+        r_lista = requests.get('http://localhost:5000/professores')
         self.assertEqual(len(r_lista.json()),2)
-        requests.delete('http://localhost:5002/professores/28')
-        r_lista = requests.get('http://localhost:5002/professores')
+        requests.delete('http://localhost:5000/professores/28')
+        r_lista = requests.get('http://localhost:5000/professores')
         self.assertEqual(len(r_lista.json()),1)
     
     def test_105_edita(self):
-        r_reset = requests.post('http://localhost:5002/reseta')
+        r_reset = requests.post('http://localhost:5000/reseta')
         self.assertEqual(r_reset.status_code,200)
-        requests.post('http://localhost:5002/professores',json={'nome':'lucas','id':28})
-        r_antes = requests.get('http://localhost:5002/professores/28')
+        requests.post('http://localhost:5000/professores',json={"id": 28,"idade": 34,"materia": "POO","nome": "lucas","observacao": "bom professor"})
+        r_antes = requests.get('http://localhost:5000/professores/28')
         self.assertEqual(r_antes.json()['nome'],'lucas')
-        requests.put('http://localhost:5002/professores/28', json={'nome':'lucas mendes'})
-        r_depois = requests.get('http://localhost:5002/professores/28')
+        requests.put('http://localhost:5000/professores/28', json={'nome':'lucas mendes'})
+        r_depois = requests.get('http://localhost:5000/professores/28')
         self.assertEqual(r_depois.json()['nome'],'lucas mendes')
 
     def test_106_id_inexistente(self):
-        r_reset = requests.post('http://localhost:5002/reseta')
+        r_reset = requests.post('http://localhost:5000/reseta')
         self.assertEqual(r_reset.status_code,200)
-        r = requests.put('http://localhost:5002/professores/15',json={'nome':'bowser','id':15})
+        r = requests.put('http://localhost:5000/professores/15',json={'id':15,"idade": 34,"materia": "POO","nome": "bowser","observacao": "bom professor"})
         self.assertEqual(r.status_code,400)
         self.assertEqual(r.json()['erro'],'professor nao encontrado')
-        r = requests.get('http://localhost:5002/professores/15')
+        r = requests.get('http://localhost:5000/professores/15')
         self.assertEqual(r.status_code,400)
         self.assertEqual(r.json()['erro'],'professor nao encontrado')
-        r = requests.delete('http://localhost:5002/professores/15')
+        r = requests.delete('http://localhost:5000/professores/15')
         self.assertEqual(r.status_code,400)
         self.assertEqual(r.json()['erro'],'professor nao encontrado')
 
     def test_107_criar_com_id_ja_existente(self):
-        r_reset = requests.post('http://localhost:5002/reseta')
+        r_reset = requests.post('http://localhost:5000/reseta')
         self.assertEqual(r_reset.status_code,200)
-        r = requests.post('http://localhost:5002/professores',json={'nome':'bond','id':7})
+        r = requests.post('http://localhost:5000/professores',json={'id':15,"idade": 34,"materia": "POO","nome": "bowser","observacao": "bom professor"})
         self.assertEqual(r.status_code,200)
-        r = requests.post('http://localhost:5002/professores',json={'nome':'james','id':7})
+        r = requests.post('http://localhost:5000/professores',json={'id':15,"idade": 30,"materia": "sql","nome": "felipe","observacao": "bom professor"})
         self.assertEqual(r.status_code,400)
         self.assertEqual(r.json()['erro'],'id ja utilizada')
 
     def test_108_post_ou_put_sem_nome(self):
-        r_reset = requests.post('http://localhost:5002/reseta')
+        r_reset = requests.post('http://localhost:5000/reseta')
         self.assertEqual(r_reset.status_code,200)
-        r = requests.post('http://localhost:5002/professores',json={'id':8})
+        r = requests.post('http://localhost:5000/professores',json={'id':8})
         self.assertEqual(r.status_code,400)
         self.assertEqual(r.json()['erro'],'professor sem nome')
-        r = requests.post('http://localhost:5002/professores',json={'nome':'maximus','id':7})
+        r = requests.post('http://localhost:5000/professores',json={"id": 7,"idade": 30,"materia": "sql","nome": "felipe","observacao": "bom professor"})
         self.assertEqual(r.status_code,200)
-        r = requests.put('http://localhost:5002/professores/7',json={'id':7})
-        self.assertEqual(r.status_code,400)
-        self.assertEqual(r.json()['erro'],'professor sem nome')
 
-    def test_109_nao_confundir_professor_e_aluno(self):
-        r_reset = requests.post('http://localhost:5002/reseta')
-        r = requests.post('http://localhost:5002/professores',json={'nome':'fernando','id':1})
-        self.assertEqual(r.status_code,200)
-        r = requests.post('http://localhost:5002/professores',json={'nome':'roberto','id':2})
-        self.assertEqual(r.status_code,200)
-        r_lista = requests.get('http://localhost:5002/professores')
-        self.assertEqual(len(r_lista.json()),2)
-        r_lista_alunos = requests.get('http://localhost:5002/alunos')
-        self.assertEqual(len(r_lista_alunos.json()),0)
-
-
-
-
-   
-
-
-    #-------------------------------------TESTES CAIO---------------------------------------------------------------
-
-
-    def test_100_professores_retorna_lista(self):
-        r = requests.get('http://localhost:5002/professores')
-        self.assertEqual(type(r.json()),type([]))
-    
-    def test_100b_nao_confundir_professor_e_aluno(self):
-        r_reset = requests.post('http://localhost:5002/reseta')
-        r = requests.post('http://localhost:5002/alunos',json={'nome':'fernando','id':1})
-        self.assertEqual(r.status_code,200)
-        r = requests.post('http://localhost:5002/alunos',json={'nome':'roberto','id':2})
-        self.assertEqual(r.status_code,200)
-        r_lista = requests.get('http://localhost:5002/professores')
-        self.assertEqual(len(r_lista.json()),0)
-        r_lista_alunos = requests.get('http://localhost:5002/alunos')
-        self.assertEqual(len(r_lista_alunos.json()),2)
-
-    def test_101_adiciona_professores(self):
-        r = requests.post('http://localhost:5002/professores',json={'nome':'fernando','id':1})
-        r = requests.post('http://localhost:5002/professores',json={'nome':'roberto','id':2})
-        r_lista = requests.get('http://localhost:5002/professores')
-        achei_fernando = False
-        achei_roberto = False
-        for professor in r_lista.json():
-            if professor['nome'] == 'fernando':
-                achei_fernando = True
-            if professor['nome'] == 'roberto':
-                achei_roberto = True
-        if not achei_fernando:
-            self.fail('professor fernando nao apareceu na lista de professores')
-        if not achei_roberto:
-            self.fail('professor roberto nao apareceu na lista de professores')
-
-    def test_102_professores_por_id(self):
-        r = requests.post('http://localhost:5002/professores',json={'nome':'mario','id':20})
-        r_lista = requests.get('http://localhost:5002/professores/20')
-        self.assertEqual(r_lista.json()['nome'],'mario')
-
-
-    
-    def test_103_adiciona_e_reseta(self):
-        r = requests.post('http://localhost:5002/professores',json={'nome':'cicero','id':29})
-        r_lista = requests.get('http://localhost:5002/professores')
-        self.assertTrue(len(r_lista.json()) > 0)
-        r_reset = requests.post('http://localhost:5002/reseta')
-        self.assertEqual(r_reset.status_code,200)
-        r_lista_depois = requests.get('http://localhost:5002/professores')
-        self.assertEqual(len(r_lista_depois.json()),0)
-
-    def test_104_deleta(self):
-        r_reset = requests.post('http://localhost:5002/reseta')
-        self.assertEqual(r_reset.status_code,200)
-        requests.post('http://localhost:5002/professores',json={'nome':'cicero','id':29})
-        requests.post('http://localhost:5002/professores',json={'nome':'lucas','id':28})
-        r_lista = requests.get('http://localhost:5002/professores')
-        self.assertEqual(len(r_lista.json()),2)
-        requests.delete('http://localhost:5002/professores/28')
-        r_lista = requests.get('http://localhost:5002/professores')
-        self.assertEqual(len(r_lista.json()),1)
-    
-    def test_105_edita(self):
-        r_reset = requests.post('http://localhost:5002/reseta')
-        self.assertEqual(r_reset.status_code,200)
-        requests.post('http://localhost:5002/professores',json={'nome':'lucas','id':28})
-        r_antes = requests.get('http://localhost:5002/professores/28')
-        self.assertEqual(r_antes.json()['nome'],'lucas')
-        requests.put('http://localhost:5002/professores/28', json={'nome':'lucas mendes'})
-        r_depois = requests.get('http://localhost:5002/professores/28')
-        self.assertEqual(r_depois.json()['nome'],'lucas mendes')
-
-    def test_106_id_inexistente(self):
-        r_reset = requests.post('http://localhost:5002/reseta')
-        self.assertEqual(r_reset.status_code,200)
-        r = requests.put('http://localhost:5002/professores/15',json={'nome':'bowser','id':15})
-        self.assertEqual(r.status_code,400)
-        self.assertEqual(r.json()['erro'],'professor nao encontrado')
-        r = requests.get('http://localhost:5002/professores/15')
-        self.assertEqual(r.status_code,400)
-        self.assertEqual(r.json()['erro'],'professor nao encontrado')
-        r = requests.delete('http://localhost:5002/professores/15')
-        self.assertEqual(r.status_code,400)
-        self.assertEqual(r.json()['erro'],'professor nao encontrado')
-
-    def test_107_criar_com_id_ja_existente(self):
-        r_reset = requests.post('http://localhost:5002/reseta')
-        self.assertEqual(r_reset.status_code,200)
-        r = requests.post('http://localhost:5002/professores',json={'nome':'bond','id':7})
-        self.assertEqual(r.status_code,200)
-        r = requests.post('http://localhost:5002/professores',json={'nome':'james','id':7})
-        self.assertEqual(r.status_code,400)
-        self.assertEqual(r.json()['erro'],'id ja utilizada')
-
-    def test_108_post_ou_put_sem_nome(self):
-        r_reset = requests.post('http://localhost:5002/reseta')
-        self.assertEqual(r_reset.status_code,200)
-        r = requests.post('http://localhost:5002/professores',json={'id':8})
-        self.assertEqual(r.status_code,400)
-        self.assertEqual(r.json()['erro'],'professor sem nome')
-        r = requests.post('http://localhost:5002/professores',json={'nome':'maximus','id':7})
-        self.assertEqual(r.status_code,200)
-        r = requests.put('http://localhost:5002/professores/7',json={'id':7})
+        r = requests.put('http://localhost:5000/professores/7',json={'id':7})
         self.assertEqual(r.status_code,400)
         self.assertEqual(r.json()['erro'],'professor sem nome')
 
     def test_109_nao_confundir_professor_e_aluno(self):
-        r_reset = requests.post('http://localhost:5002/reseta')
-        r = requests.post('http://localhost:5002/professores',json={'nome':'fernando','id':1})
+        r_reset = requests.post('http://localhost:5000/reseta')
+        r = requests.post('http://localhost:5000/professores',json={'id':1,"idade": 34,"materia": "POO","nome": "fernando","observacao": "bom professor"})
         self.assertEqual(r.status_code,200)
-        r = requests.post('http://localhost:5002/professores',json={'nome':'roberto','id':2})
+        r = requests.post('http://localhost:5000/professores',json={'id':2,"idade": 34,"materia": "sql","nome": "roberto","observacao": "bom professor"})
         self.assertEqual(r.status_code,200)
-        r_lista = requests.get('http://localhost:5002/professores')
+        r_lista = requests.get('http://localhost:5000/professores')
         self.assertEqual(len(r_lista.json()),2)
-        r_lista_alunos = requests.get('http://localhost:5002/alunos')
+        r_lista_alunos = requests.get('http://localhost:5000/alunos')
         self.assertEqual(len(r_lista_alunos.json()),0)
 
 
+    def test_110_put_altera_outros_campos(self):
+        r_reset = requests.post('http://localhost:5000/reseta')
+        self.assertEqual(r_reset.status_code, 200)
+
+        # Cria um professor
+        requests.post('http://localhost:5000/professores',
+                      json={'id': 1, "idade": 30, "materia": "POO", "nome": "Professor 1",
+                            "observacao": "Bom professor"})
+
+        # Altera outros campos
+        r_atualizar = requests.put('http://localhost:5000/professores/1',
+                                  json={'idade': 35, 'materia': 'Python',"nome": "Professor 1", 'observacao': 'Excelente professor'})
+        self.assertEqual(r_atualizar.status_code, 200)
+
+        # Verifica se os campos foram alterados corretamente
+        r_get = requests.get('http://localhost:5000/professores/1')
+        self.assertEqual(r_get.status_code, 200)
+        professor_atualizado = r_get.json()
+        self.assertEqual(professor_atualizado['idade'], 35)
+        self.assertEqual(professor_atualizado['materia'], 'Python')
+        self.assertEqual(professor_atualizado['observacao'], 'Excelente professor')
+        self.assertEqual(professor_atualizado['nome'], 'Professor 1')  # Nome não deve ter mudado 
 
 
-        
 
 
 def runTests():
