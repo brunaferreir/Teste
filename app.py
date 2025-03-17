@@ -291,6 +291,20 @@ def create_professores():
 
     if not nome_professor:
         return jsonify({'erro': 'professor sem nome'}), 400
+    
+     # Validação de tipos (exemplo)
+    if 'nome' in dados and not isinstance(dados['nome'], str):
+        return jsonify({'erro': 'O nome deve ser uma string'}), 400
+    
+    if 'idade' in dados and not isinstance(dados['idade'], int):
+        return jsonify({'erro': 'A idade deve ser um número inteiro'}), 400
+    
+    if 'materia' in dados and not isinstance(dados['materia'], str):
+        return jsonify({'erro': 'A matéria deve ser uma string'}), 400
+    
+    if 'observacao' in dados and not isinstance(dados['observacao'], str):
+        return jsonify({'erro': 'A observação deve ser uma string'}), 400
+
 
     # Verifica se o ID já existe
     for professor in dici['professores']:

@@ -45,7 +45,7 @@ No teste 015, tento deletar um aluno com um id que não existe. Nesse caso, deve
 
 
 
-Testes 100 a 110: Teremos as URLs análogas para professores.
+Testes 100 a 115: Teremos as URLs análogas para professores.
 
 No teste 100, tento acessar a lista de professores.
 No teste 101, tento adicionar professores.
@@ -53,11 +53,23 @@ No teste 102, tento acessar um professor por id.
 No teste 103, tento adicionar professores e resetar a lista.
 No teste 104, tento deletar um professor.
 No teste 105, tento editar um professor.
-No teste 106, tento acessar, deletar e editar um professor que não existe.
-No teste 107, tento criar um professor com um id que já existe.
-No teste 108, tento criar um professor sem nome que retorna um erro.
-No teste 109, tento editar um professor sem nome que retorna um erro.
-No teste 110, tento editar um professor, mas alterando outros campos que não o nome. Nesse caso, devemos aceitar a alteração e retornar o professor com os campos alterados.
+No teste 106, tento editar um professor que não existe.
+
+No teste 107, tento adicionar um professor com um id que já existe.
+No teste 108, tento adicionar ou editar um professor sem nome.
+No teste 109, tento adicionar um professor com um tipo de idade inválido. Nesse caso, devemos retornar um código de status 400 e um dicionário {“erro”:'A idade deve ser um número inteiro'}
+No teste 110, tento adicionar um professor com um tipo de matéria inválido. Nesse caso, devemos retornar um código de status 400 e um dicionário {“erro”:'A matéria deve ser uma string'}
+
+No teste 111, tento editar um professor alterando outros campos.
+No teste 112, tento editar um professor com o tipo do nome invalido. Nesse caso devemos retornar um código de status 400 e um dicionário {“erro”:'O nome deve ser uma string'}
+No teste 113, tento editar um professor que não existe. Nesse caso devemos retornar um código de status 400 e um dicionário {“erro”:'professor nao encontrado'}
+
+No teste 114, tento adicionar um professor e um aluno com o mesmo id. Nesse caso, devemos retornar um código de status 200 e um dicionário {“erro”:'id ja utilizada'}
+No teste 115, tento deletar um professor que não existe. Nesse caso devemos retornar um código de status 400 e um dicionário {“erro”:'professor nao encontrado'}
+
+
+
+
 
 
 '''
@@ -450,7 +462,7 @@ class TestStringMethods(unittest.TestCase):
         self.assertEqual(r.status_code,400)
         self.assertEqual(r.json()['erro'],'professor nao encontrado')
 
-    def test_107_criar_com_id_ja_existente(self):
+    def test_107_post_com_id_ja_existente(self):
         r_reset = requests.post('http://localhost:5000/reseta')
         self.assertEqual(r_reset.status_code,200)
         r = requests.post('http://localhost:5000/professores',json={'id':15,"idade": 34,"materia": "POO","nome": "bowser","observacao": "bom professor"})
@@ -472,19 +484,26 @@ class TestStringMethods(unittest.TestCase):
         self.assertEqual(r.status_code,400)
         self.assertEqual(r.json()['erro'],'professor sem nome')
 
-    def test_109_nao_confundir_professor_e_aluno(self):
-        r_reset = requests.post('http://localhost:5000/reseta')
-        r = requests.post('http://localhost:5000/professores',json={'id':1,"idade": 34,"materia": "POO","nome": "fernando","observacao": "bom professor"})
-        self.assertEqual(r.status_code,200)
-        r = requests.post('http://localhost:5000/professores',json={'id':2,"idade": 34,"materia": "sql","nome": "roberto","observacao": "bom professor"})
-        self.assertEqual(r.status_code,200)
-        r_lista = requests.get('http://localhost:5000/professores')
-        self.assertEqual(len(r_lista.json()),2)
-        r_lista_alunos = requests.get('http://localhost:5000/alunos')
-        self.assertEqual(len(r_lista_alunos.json()),0)
+    def test_109_post_professor_idade_tipo_invalido(self):
+        # Tenta criar um professor com um tipo de idade inválido
+        payload = {'id': 5, 'nome': 'Professor E Atualizado', 'idade': 'quarenta'}
+        r = requests.post('http://localhost:5000/professores', json=payload)
+
+        self.assertEqual(r.status_code, 400)
+        self.assertEqual(r.json()['erro'], 'A idade deve ser um número inteiro')    
 
 
-    def test_110_put_altera_outros_campos(self):
+    def test_110_post_professor_materia_tipo_invalido(self):
+    # Tenta criar um professor com um tipo de matéria inválido
+        payload = {'id': 6, 'nome': 'Professor F Atualizado', 'materia': 456}
+        r = requests.post('http://localhost:5000/professores', json=payload)
+
+        self.assertEqual(r.status_code, 400)
+        self.assertEqual(r.json()['erro'], 'A matéria deve ser uma string')
+    
+    
+
+    def test_111_put_altera_outros_campos(self):
         r_reset = requests.post('http://localhost:5000/reseta')
         self.assertEqual(r_reset.status_code, 200)
 
@@ -505,7 +524,47 @@ class TestStringMethods(unittest.TestCase):
         self.assertEqual(professor_atualizado['idade'], 35)
         self.assertEqual(professor_atualizado['materia'], 'Python')
         self.assertEqual(professor_atualizado['observacao'], 'Excelente professor')
-        self.assertEqual(professor_atualizado['nome'], 'Professor 1')  # Nome não deve ter mudado 
+        self.assertEqual(professor_atualizado['nome'], 'Professor 1')  # Nome não deve ter mudado
+
+    def test_112_put_professor_nome_tipo_invalido(self):
+        # Cria um professor primeiro
+        requests.post('http://localhost:5000/professores', json={'id': 3,'idade': 35, 'materia': 'Python',"nome": "Professor 1", 'observacao': 'Excelente professor'})
+
+        # Tenta atualizar com um tipo de nome inválido
+        payload = {'nome': 123}
+        r = requests.put('http://localhost:5000/professores/3', json=payload)
+
+        self.assertEqual(r.status_code, 400)
+        self.assertEqual(r.json()['erro'], 'O nome deve ser uma string') 
+
+
+    def test_113_put_professor_nao_encontrado(self):
+        # Tenta atualizar um professor que não existe
+        payload = {'nome': 'Professor H Atualizado'}
+        r = requests.put('http://localhost:5000/professores/999', json=payload)
+
+        self.assertEqual(r.status_code, 400)
+        self.assertEqual(r.json()['erro'], 'professor nao encontrado')  
+
+
+    def test_114_nao_confundir_professor_e_aluno(self):
+        r_reset = requests.post('http://localhost:5000/reseta')
+        r = requests.post('http://localhost:5000/professores',json={'id':1,"idade": 34,"materia": "POO","nome": "fernando","observacao": "bom professor"})
+        self.assertEqual(r.status_code,200)
+        r = requests.post('http://localhost:5000/professores',json={'id':2,"idade": 34,"materia": "sql","nome": "roberto","observacao": "bom professor"})
+        self.assertEqual(r.status_code,200)
+        r_lista = requests.get('http://localhost:5000/professores')
+        self.assertEqual(len(r_lista.json()),2)
+        r_lista_alunos = requests.get('http://localhost:5000/alunos')
+        self.assertEqual(len(r_lista_alunos.json()),0)
+    
+
+    def test_115_delete_professor_nao_encontrado(self):
+        # Tenta deletar um professor que não existe
+        r = requests.delete('http://localhost:5000/professores/999')
+
+        self.assertEqual(r.status_code, 400)
+        self.assertEqual(r.json()['erro'], 'professor nao encontrado')           
 
 
 
