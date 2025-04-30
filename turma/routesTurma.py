@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from turma.modelTurmas import TurmaNaoEncontrada,turma_por_id, getTurma, apaga_tudo, createTurma, deleteTurma, atualizarTurma, atualizarParcialTurma, dici
+from turma.modelTurmas import Turma,TurmaNaoEncontrada,turma_por_id, getTurma, apaga_tudo, createTurma, deleteTurma, atualizarTurma, atualizarParcialTurma
 
 turmas_blueprint = Blueprint('turmas', __name__)
 
@@ -32,8 +32,10 @@ def criar_turma():
     if "erro" in resposta:
         return jsonify(resposta), 400
 
-    dici['turmas'].append(resposta)
-    return jsonify(resposta, {'mensagem': 'Turma criada com sucesso'}), 200
+    return jsonify({
+        'turma': resposta,
+        'mensagem': 'Turma criada com sucesso'
+    }), 201
 
 
 @turmas_blueprint.route('/turmas/<int:idTurma>', methods=['PUT'])

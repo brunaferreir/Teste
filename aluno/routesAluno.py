@@ -1,5 +1,7 @@
-from flask import Blueprint, request, jsonify
-from aluno.modelAluno import AlunoNaoEncontrado, aluno_por_id, get_alunos, create_aluno, apaga_tudo, atualizarAluno, atualizarParcialAluno, deleteAluno,dici
+from flask import Blueprint, request, jsonify ,render_template,redirect, url_for
+from datetime import datetime
+from aluno.modelAluno import AlunoNaoEncontrado, aluno_por_id, get_alunos, create_aluno, apaga_tudo, atualizarAluno, atualizarParcialAluno, deleteAluno
+from config import db
 
 alunos_blueprint = Blueprint('alunos', __name__)
 
@@ -29,8 +31,10 @@ def criar_aluno():
     if "erro" in resposta:
         return jsonify(resposta), 400
 
-    dici['alunos'].append(resposta)
-    return jsonify(resposta, {'mensagem': 'Aluno criado com sucesso'}), 200
+    return jsonify({
+        'aluno': resposta,
+        'mensagem': 'Aluno criada com sucesso'
+    }), 201
 
 
 

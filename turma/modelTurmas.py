@@ -1,9 +1,24 @@
-dici = {
-     "turmas" : [
-        {'nome':'si','id':1, 'professor':"caio"},
-        {'nome':'ads','id':28, 'professor':'caio'}
-    ]    
-}
+from config import db
+
+class Turma(db.Model):
+    __tablename__ = "turmas"
+
+    id = db.Column(db.Integer, primary_key = True)
+    nome = db.Column(db.String(100))
+    professor_id = db.Column(db.Integer, db.ForeignKey("professor.id"), nullable=False)
+    professor = db.relationship("Professor", back_populates="turmas")
+
+    def __init__(self, nome):
+        self.nome = nome
+
+    def to_dict(self):
+        professor_data = None
+        if self.professor:
+            professor_data = {
+                'id': self.professor.id,
+                'nome': self.professor.nome,
+            }
+        return {'id': self.id, 'nome': self.nome, 'professor': professor_data}
 
 
 class TurmaNaoEncontrada(Exception):
@@ -11,24 +26,31 @@ class TurmaNaoEncontrada(Exception):
 
 
 def turma_por_id(idTurma):
-    for turma in dici['turmas']:
-        if turma['id'] == idTurma:
-            return turma
-    raise TurmaNaoEncontrada
+    turma = Turma.query.get(idTurma)
+
+    if not turma:
+        raise TurmaNaoEncontrada("Turma não encontrada")
+    return turma.to_dict()
 
 def getTurma():
-    return dici["turmas"]
+    turmas = Turma.query.all()
+    return [turma.to_dict() for turma in turmas]
 
 def apaga_tudo():
-    dici['turmas'] = []
-    return "message: Banco de dados resetado"
+    try:
+        db.session.query(Turma).delete()
+        db.session.commit()
+        return "message: Banco de dados resetado"
+    except Exception as e:
+        db.session.rollback()
+        return f"Erro ao resetar o banco de dados: {e}"
 
 def createTurma(id, nome, professor):
     if not id or not nome or not professor:
         return {'erro': 'Parâmetro obrigatório ausente'}
 
     if not isinstance(id, int) or id <= 0:
-        return {'erro': 'O id deve ser um número inteiro positivo'}
+        return {'erro': 'O id deve ser um número inteiro'}
 
     if not isinstance(nome, str):
         return {'erro': 'O nome deve ser uma string'}
@@ -36,64 +58,70 @@ def createTurma(id, nome, professor):
     if not isinstance(professor, str):
         return {'erro': 'O professor deve ser uma string'}
 
-    for turma in dici["turmas"]:
-        if turma['id'] == id:
-            return {'erro': 'id ja utilizada'}
+    turma_existente = Turma.query.get(id)
+    if turma_existente:
+        return {'erro': 'id ja utilizada'}
 
-    return {'id': id, 'nome': nome, 'professor': professor}
+    nova_turma = Turma(id=id, nome=nome,professor=professor)
+    db.session.add(nova_turma)
+    db.session.commit()
+
+    return nova_turma.to_dict()
 
 
 def deleteTurma(idTurma):
-    for turma in dici["turmas"]:
-        if turma["id"] == idTurma:
-            dici["turmas"].remove(turma)
-            return 'mensagem: Turma deletada com sucesso', turma
-    
-    raise TurmaNaoEncontrada("Turma não encontrada")
+    turma = Turma.query.get(idTurma)
+    if not turma:
+        raise TurmaNaoEncontrada
+    db.session.delete(turma)
+    db.session.commit()
+    return 'mensagem: Turma deletada com sucesso', turma
 
 
 def atualizarTurma(idTurma, nome=None, professor=None):
-    turma_encontrada = None
-    for turma in dici['turmas']:
-        if turma["id"] == idTurma:
-            turma_encontrada = turma
-            print(f"Turma encontrada: {turma}")
-            break
+    try:
+        turma_encontrada = Turma.query.get(idTurma)
+        if turma_encontrada is None:
+            raise TurmaNaoEncontrada("Turma não encontrada")
 
-    if turma_encontrada is None:
-        raise TurmaNaoEncontrada("Turma não encontrada")
+        if nome is None and professor is None:
+            return 'erro: Pelo menos um dos campos "nome" ou "professor" deve ser fornecido', None
 
-    if nome is None and professor is None:
-        return 'erro: Pelo menos um dos campos "nome" ou "professor" deve ser fornecido', None
+        if nome and not isinstance(nome, str):
+            return 'erro: O nome deve ser uma string', None
+        if professor and not isinstance(professor, str):
+            return 'erro: O professor deve ser uma string', None
 
-    if nome and not isinstance(nome, str):
-        return 'erro: O nome deve ser uma string', None
-    if professor and not isinstance(professor, str):
-        return 'erro: O professor deve ser uma string', None
+        if nome:
+            turma_encontrada.nome = nome
+        if professor:
+            turma_encontrada.professor = professor
 
-    if nome:
-        turma_encontrada['nome'] = nome
-    if professor:
-        turma_encontrada['professor'] = professor
+        db.session.commit()
 
-    print(f"Estado do banco de dados após a atualização: {dici['turmas']}")
+        return "mensagem: Turma atualizada com sucesso", turma_encontrada.to_dict()
 
-    return "mensagem: Turma atualizada com sucesso", turma_encontrada
+    except Exception as e:
+        db.session.rollback()
+        return f"erro: {str(e)}", None
 
 
-def atualizarParcialTurma(idTurma,dados):
-    turma_encontrada = False
-    for turma in dici['turmas']:
-        if turma["id"] == idTurma:
-            
-            for chave, valor in dados.items():
-                if chave in turma: 
-                    turma[chave] = valor
-            turma_encontrada = True
-            return "mensagem: Turma atualizada com sucesso", turma
+def atualizarParcialTurma(idTurma, dados):
+    try:
+        turma_encontrada = Turma.query.get(idTurma)
+        if turma_encontrada is None:
+            raise TurmaNaoEncontrada("Turma não encontrada")
 
-    if not turma_encontrada:
-        return "erro: Turma não encontrada"
+        for chave, valor in dados.items():
+            if hasattr(turma_encontrada, chave):
+                setattr(turma_encontrada, chave, valor)
+
+        db.session.commit()
+        return "mensagem: Turma atualizada com sucesso", turma_encontrada.to_dict()
+
+    except Exception as e:
+        db.session.rollback()
+        return f"erro: {str(e)}", None
 
 # print(turma_por_id(28))
 # print(getTurma())
