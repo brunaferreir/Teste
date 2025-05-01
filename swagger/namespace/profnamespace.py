@@ -6,7 +6,7 @@ from professor.modelProf import ProfessorNaoEncontrado, professor_por_id, get_pr
 prof_ns = Namespace("professor", description="Dados relacionados aos professores")
 
 prof_model = prof_ns.model("Professor", {
-    "nome": fields.String(description="Nome do professor"),
+    "nome": fields.String(required=True, description="Nome do professor"),
     "idade":fields.Integer(required=True, description="Idade do professor"),
     "materia": fields.String(required=True, description="Materia lecionada"),
     "observacao":fields.String(required=True, description="Observação do professor")
@@ -14,7 +14,7 @@ prof_model = prof_ns.model("Professor", {
 
 prof_output_model = prof_ns.model("profOutput", {
     "id": fields.Integer(description="ID do professor"),
-    "nome": fields.String(description="Nome do professor"),
+    "nome": fields.String(required=True, description="Nome do professor"),
     "idade":fields.Integer(required=True, description="Idade do professor"),
     "materia": fields.String(required=True, description="Materia lecionada"),
     "observacao":fields.String(required=True, description="Observação do professor")

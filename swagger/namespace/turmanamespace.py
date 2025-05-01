@@ -4,14 +4,16 @@ from turma.modelTurmas import Turma,TurmaNaoEncontrada,turma_por_id, getTurma, a
 turma_ns = Namespace("turma", description="Dados relacionados as tumas")
 
 turma_model = turma_ns.model("Turma", {
-    "descricao": fields.String(required=True, description="descricao da turma"),
-    "professor": fields.String(required=True, description="Professor Responsavel")
+    "descricao": fields.String(required=True, description="Descricao da turma"),
+    "professor_id": fields.Integer(required=True, description="Professor Responsavel"),
+    "ativo": fields.Boolean(required=True, description="Indica se a turma esta ativa")
 })
 
 turma_output_model = turma_ns.model("turmaOutput", {
     "id": fields.Integer(description="ID da turma"),
-    "descricao": fields.String(required=True, description="descricao da turma"),
-    "professor": fields.String(required=True, description="Professor Responsavel")
+    "descricao": fields.String(required=True, description="Descricao da turma"),
+    "professor_id": fields.Integer(required=True, description="Professor Responsavel"),
+    "ativo" : fields.Boolean(required=True, description="Indica se a turma esta ativa")
 })
 
 @turma_ns.route("/")
@@ -26,7 +28,7 @@ class TurmaResource(Resource):
         """Cria uma nova turma"""
         data = turma_ns.payload
         print(f"Payload recebido: {data}")
-        response, status_code = createTurma(data['descricao'], data['professor'])
+        response, status_code = createTurma(data['descricao'], data['professor_id'], data['ativo'])
         return response, status_code
 
 @turma_ns.route("/<int:id_turma>")

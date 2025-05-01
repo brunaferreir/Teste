@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from turma.modelTurmas import Turma,TurmaNaoEncontrada,turma_por_id, getTurma, apaga_tudo, createTurma, deleteTurma, atualizarTurma, atualizarParcialTurma
+from turma.modelTurmas import TurmaNaoEncontrada,turma_por_id, getTurma, apaga_tudo, createTurma, deleteTurma, atualizarTurma, atualizarParcialTurma
 
 turmas_blueprint = Blueprint('turmas', __name__)
 
@@ -25,10 +25,10 @@ def criar_turma():
         return jsonify({'erro': 'JSON inválido ou não fornecido'}), 400
 
     dados = request.json
-    if 'id' not in dados or 'descricao' not in dados or 'professor' not in dados:
+    if 'id' not in dados or 'descricao' not in dados or 'professor_id' not in dados or 'ativo' not in dados:
         return jsonify({'erro': 'Parâmetro obrigatório ausente'}), 400
 
-    resposta = createTurma(dados.get('id'), dados.get('descricao'), dados.get('professor'))
+    resposta = createTurma(dados.get('id'), dados.get('descricao'), dados.get('professor_id'), dados.get('ativo'))
     if "erro" in resposta:
         return jsonify(resposta), 400
 
