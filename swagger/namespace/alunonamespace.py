@@ -23,7 +23,8 @@ class AlunosResource(Resource):
     def post(self):
         """Cria um novo aluno"""
         data = alunos_ns.payload
-        response, status_code = create_aluno(data)
+        nome = data.get('nome') 
+        response, status_code = create_aluno(data['nome'])
         return response, status_code
 
 @alunos_ns.route("/<int:id_aluno>")

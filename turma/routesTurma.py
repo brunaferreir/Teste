@@ -25,10 +25,10 @@ def criar_turma():
         return jsonify({'erro': 'JSON inválido ou não fornecido'}), 400
 
     dados = request.json
-    if 'id' not in dados or 'nome' not in dados or 'professor' not in dados:
+    if 'id' not in dados or 'descricao' not in dados or 'professor' not in dados:
         return jsonify({'erro': 'Parâmetro obrigatório ausente'}), 400
 
-    resposta = createTurma(dados.get('id'), dados.get('nome'), dados.get('professor'))
+    resposta = createTurma(dados.get('id'), dados.get('descricao'), dados.get('professor'))
     if "erro" in resposta:
         return jsonify(resposta), 400
 
@@ -45,14 +45,14 @@ def atualizar_turma(idTurma):
 
     dados = request.json
 
-    if (not isinstance(dados.get('nome'), str) and dados.get('nome') is not None) or \
+    if (not isinstance(dados.get('descricao'), str) and dados.get('descricao') is not None) or \
        (not isinstance(dados.get('professor'), str) and dados.get('professor') is not None):
         return jsonify({'erro': 'Tipos de dados inválidos'}), 400
 
     try:
-        resposta, turma_atualizada = atualizarTurma(idTurma, dados.get('nome'), dados.get('professor'))
+        resposta, turma_atualizada = atualizarTurma(idTurma, dados.get('descricao'), dados.get('professor'))
         if not turma_atualizada:
-            return '', 204
+            return '', 204 
         
         return jsonify({"mensagem": resposta, "turma": turma_atualizada}), 200
 

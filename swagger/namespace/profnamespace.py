@@ -6,10 +6,10 @@ from professor.modelProf import ProfessorNaoEncontrado, professor_por_id, get_pr
 prof_ns = Namespace("professor", description="Dados relacionados aos professores")
 
 prof_model = prof_ns.model("Professor", {
-    "nome": fields.String(required=True, description="Nome do professor"),
+    "nome": fields.String(description="Nome do professor"),
     "idade":fields.Integer(required=True, description="Idade do professor"),
     "materia": fields.String(required=True, description="Materia lecionada"),
-    "observação":fields.String(required=True, description="Observação do professor")
+    "observacao":fields.String(required=True, description="Observação do professor")
 })
 
 prof_output_model = prof_ns.model("profOutput", {
@@ -17,7 +17,7 @@ prof_output_model = prof_ns.model("profOutput", {
     "nome": fields.String(description="Nome do professor"),
     "idade":fields.Integer(required=True, description="Idade do professor"),
     "materia": fields.String(required=True, description="Materia lecionada"),
-    "observação":fields.String(required=True, description="Observação do professor")
+    "observacao":fields.String(required=True, description="Observação do professor")
 })
 
 @prof_ns.route("/")
@@ -29,9 +29,10 @@ class ProfResource(Resource):
 
     @prof_ns.expect(prof_model)
     def post(self):
-        """Cria uma novo professor"""
+        """Cria um novo professor"""
         data = prof_ns.payload
-        response, status_code = create_professores(data)
+        print(f"Payload recebido: {data}")
+        response, status_code = create_professores(data['nome'], data['idade'], data['materia'], data['observacao'])
         return response, status_code
 
 @prof_ns.route("/<int:id_prof>")

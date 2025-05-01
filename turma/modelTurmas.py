@@ -4,21 +4,26 @@ class Turma(db.Model):
     __tablename__ = "turmas"
 
     id = db.Column(db.Integer, primary_key = True)
-    nome = db.Column(db.String(100))
+    descricao = db.Column(db.String(100))
     professor_id = db.Column(db.Integer, db.ForeignKey("professor.id"), nullable=False)
-    professor = db.relationship("Professor", back_populates="turmas")
+    ativo = db.Column(db.Boolean)
+    #professor = db.relationship("Professor", back_populates="turmas")
 
-    def __init__(self, nome):
-        self.nome = nome
+    def __init__(self, descricao):
+        self.descricao = descricao
 
     def to_dict(self):
         professor_data = None
         if self.professor:
             professor_data = {
                 'id': self.professor.id,
-                'nome': self.professor.nome,
+                'descricao': self.professor.descricao,
+                
             }
-        return {'id': self.id, 'nome': self.nome, 'professor': professor_data}
+        return {'id': self.id,
+               'descricao': self.descricao,
+               'professor': professor_data,
+               'ativo': self.ativo}
 
 
 class TurmaNaoEncontrada(Exception):
@@ -45,28 +50,20 @@ def apaga_tudo():
         db.session.rollback()
         return f"Erro ao resetar o banco de dados: {e}"
 
-def createTurma(id, nome, professor):
-    if not id or not nome or not professor:
+def createTurma(descricao, professor):
+    if not descricao or not professor:
         return {'erro': 'Parâmetro obrigatório ausente'}
 
-    if not isinstance(id, int) or id <= 0:
-        return {'erro': 'O id deve ser um número inteiro'}
-
-    if not isinstance(nome, str):
-        return {'erro': 'O nome deve ser uma string'}
+    if not isinstance(descricao, str):
+        return {'erro': 'O descricao deve ser uma string'}
 
     if not isinstance(professor, str):
         return {'erro': 'O professor deve ser uma string'}
 
-    turma_existente = Turma.query.get(id)
-    if turma_existente:
-        return {'erro': 'id ja utilizada'}
-
-    nova_turma = Turma(id=id, nome=nome,professor=professor)
+    nova_turma = Turma(descricao=descricao, professor=professor)
     db.session.add(nova_turma)
     db.session.commit()
-
-    return nova_turma.to_dict()
+    return nova_turma.to_dict(), 201
 
 
 def deleteTurma(idTurma):
@@ -78,22 +75,22 @@ def deleteTurma(idTurma):
     return 'mensagem: Turma deletada com sucesso', turma
 
 
-def atualizarTurma(idTurma, nome=None, professor=None):
+def atualizarTurma(idTurma, descricao=None, professor=None):
     try:
         turma_encontrada = Turma.query.get(idTurma)
         if turma_encontrada is None:
             raise TurmaNaoEncontrada("Turma não encontrada")
 
-        if nome is None and professor is None:
-            return 'erro: Pelo menos um dos campos "nome" ou "professor" deve ser fornecido', None
+        if descricao is None and professor is None:
+            return 'erro: Pelo menos um dos campos "descricao" ou "professor" deve ser fornecido', None
 
-        if nome and not isinstance(nome, str):
-            return 'erro: O nome deve ser uma string', None
+        if descricao and not isinstance(descricao, str):
+            return 'erro: O descricao deve ser uma string', None
         if professor and not isinstance(professor, str):
             return 'erro: O professor deve ser uma string', None
 
-        if nome:
-            turma_encontrada.nome = nome
+        if descricao:
+            turma_encontrada.descricao = descricao
         if professor:
             turma_encontrada.professor = professor
 
