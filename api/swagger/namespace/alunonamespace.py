@@ -3,6 +3,8 @@ from aluno.modelAluno import AlunoNaoEncontrado, aluno_por_id, get_alunos, creat
 
 alunos_ns = Namespace("aluno", description="Dados relacionados aos alunos")
 
+error_model = alunos_ns.model("Error", {"erro": fields.String(description="Mensagem de erro")})
+
 aluno_model = alunos_ns.model("Aluno", {
     "nome": fields.String(required=True, description="Nome do aluno"),
     "data_nascimento": fields.String(required=True, description="Data de nascimento (YYYY-MM-DD)"),
@@ -30,6 +32,8 @@ class AlunosResource(Resource):
         return get_alunos()
 
     @alunos_ns.expect(aluno_model)
+    @alunos_ns.marshal_with(aluno_output_model, code=201, description='Aluno criado com sucesso')
+    @alunos_ns.response(400, 'Erro de validação', error_model)
     def post(self):
         """Cria um novo aluno"""
         data = alunos_ns.payload
@@ -37,19 +41,27 @@ class AlunosResource(Resource):
         return response, status_code
 
 @alunos_ns.route("/<int:id_aluno>")
+@alunos_ns.response(404, 'Aluno não encontrado', model=error_model)
 class AlunoIdResource(Resource):
     @alunos_ns.marshal_with(aluno_output_model)
     def get(self, id_aluno):
         """Obtém um aluno pelo ID"""
-        return aluno_por_id(id_aluno)
+        try:
+            return aluno_por_id(id_aluno)
+        except AlunoNaoEncontrado as e:
+            alunos_ns.abort(404, str(e))
 
     @alunos_ns.expect(aluno_model)
+    @alunos_ns.marshal_with(aluno_output_model, description='Aluno atualizado com sucesso')
+    @alunos_ns.response(400, 'Erro de validação', model=error_model)
     def put(self, id_aluno):
         """Atualiza um aluno pelo ID"""
         data = alunos_ns.payload
         atualizarParcialAluno(id_aluno, data)
-        return data, 200
+        aluno_atualizado = aluno_por_id(id_aluno)
+        return aluno_atualizado, 200
 
+    @alunos_ns.response(200, 'Aluno excluído com sucesso')
     def delete(self, id_aluno):
         """Exclui um aluno pelo ID"""
         deleteAluno(id_aluno)
